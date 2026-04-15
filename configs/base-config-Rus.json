@@ -1,0 +1,167 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "final": "google_doh",
+    "independent_cache": false,
+    "servers": [
+      {
+        "tag": "local_dns_resolver",
+        "type": "local"
+      },
+      {
+        "server": "8.8.8.8",
+        "server_port": 53,
+        "tag": "direct_dns_resolver",
+        "type": "udp"
+      },
+      {
+        "domain_resolver": "direct_dns_resolver",
+        "path": "/dns-query",
+        "server": "dns.google",
+        "server_port": 443,
+        "tag": "google_doh",
+        "type": "https"
+      }
+    ],
+    "rules": [
+      {
+        "server": "google_doh"
+      }
+    ],
+    "strategy": "prefer_ipv4"
+  },
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "interface_name": "easybox",
+      "address": [
+        "172.20.0.1/30"
+      ],
+      "mtu": 1492,
+      "auto_route": true,
+      "strict_route": false,
+      "stack": "system"
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ],
+"route": {
+  "rule_set": [
+    {
+      "type": "inline",
+      "tag": "ru-domains",
+      "rules": [
+        {
+          "domain_suffix": [
+            "ru",
+            "xn--p1ai",
+            "su"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "local",
+      "tag": "ru-blocked",
+      "format": "binary",
+      "path": "assets/geoip-ru-blocked.srs"
+    },
+{
+      "type": "local",
+      "tag": "ru-blocked2",
+      "format": "binary",
+      "path": "assets/geoip-ru-blocked-community.srs"
+    },
+
+    {
+      "type": "local",
+      "tag": "geoip-ru",
+      "format": "binary",
+      "path": "assets/geosite-ru-available-only-inside.srs"
+    }
+  ],
+  "rules": [
+    {
+      "action": "resolve",
+      "inbound": "tun-in",
+      "strategy": "prefer_ipv4"
+    },
+    {
+      "action": "sniff",
+      "inbound": "tun-in",
+      "timeout": "1s"
+    },
+    {
+      "protocol": "dns",
+      "action": "hijack-dns"
+    },
+    {
+      "ip_is_private": true,
+      "outbound": "direct"
+    },
+    {
+      "domain_suffix": [
+        "local",
+        "lan"
+      ],
+      "outbound": "direct"
+    },
+    {
+      "network": [
+        "udp"
+      ],
+      "port": [
+        443
+      ],
+      "action": "reject",
+      "method": "drop"
+    },
+    {
+      "protocol": [
+        "bittorrent"
+      ],
+      "outbound": "direct"
+    },
+    {
+      "rule_set": "ru-blocked",
+      "network": [
+        "tcp",
+        "udp"
+      ],
+      "outbound": "proxy"
+    },
+ {
+      "rule_set": "ru-blocked2",
+      "network": [
+        "tcp",
+        "udp"
+      ],
+      "outbound": "proxy"
+    },
+    {
+      "rule_set": "ru-domains",
+      "outbound": "direct"
+    },
+    {
+      "rule_set": "geoip-ru",
+      "outbound": "direct"
+    },
+    {
+      "network": "icmp",
+      "action": "route",
+      "outbound": "direct"
+    }
+  ],
+  "final": "proxy",
+  "auto_detect_interface": true,
+  "default_domain_resolver": "direct_dns_resolver"
+}
+}
