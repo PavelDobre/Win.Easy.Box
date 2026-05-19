@@ -12,5 +12,7 @@
     <File Build="0" ReferenceFunction="Show-addSubscriptionForm_psf">addSubscriptionForm.psf</File>
     <File Build="0" ReferenceFunction="Show-DeleteProfileForm_psf">DeleteProfileForm.psf</File>
     <File Build="0" ReferenceFunction="Show-assetsform_psf">assetsform.psf</File>
+    <File Build="0" ReferenceFunction="Show-service_psf">service.psf</File>
+    <File Build="0" Shared="False" ReferenceFunction="Invoke-install_ps1">install.ps1</File>
   </Files>
 </Project>
